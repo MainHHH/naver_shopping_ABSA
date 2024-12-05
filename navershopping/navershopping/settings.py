@@ -52,6 +52,8 @@ ROBOTSTXT_OBEY = False
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
    "navershopping.middlewares.SeleniumMiddleware": 543,
+   'rotating_proxies.middlewares.RotatingProxyMiddleware': 610,
+   'rotating_proxies.middlewares.BanDetectionMiddleware': 620,
 }
 
 # Enable or disable extensions
@@ -81,7 +83,7 @@ DOWNLOADER_MIDDLEWARES = {
 
 # Enable and configure HTTP caching (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-#HTTPCACHE_ENABLED = True
+HTTPCACHE_ENABLED = False
 #HTTPCACHE_EXPIRATION_SECS = 0
 #HTTPCACHE_DIR = "httpcache"
 #HTTPCACHE_IGNORE_HTTP_CODES = []
@@ -92,7 +94,7 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
 FEED_FORMAT = 'json'         # JSON 형식으로 저장
-FEED_URI = 'output_data.json' # 저장할 파일 경로 (여기서는 'output_data.json')
+FEED_URI = 'output_data_heeae.json' # 저장할 파일 경로 (여기서는 'output_data.json')
 
 USERAGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246",
@@ -106,3 +108,12 @@ USERAGENTS = [
     "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0",
 ]
+
+ROTATING_PROXY_LIST = [
+    '108.7.232.77:3128', # GOOD
+    '190.103.177.131:80', # GOOD
+    '109.236.83.153:8888' # GOOD
+]
+
+# ROTATING_PROXY_BAN_POLICY = 'navershopping.policy.MyBanPolicy'
+ROTATING_PROXY_BAN_POLICY = 'navershopping.policy.MyBanPolicy'

@@ -156,6 +156,8 @@ class SeleniumMiddleware:
             # Capture POST requests with specific conditions
             for request_ in self.driver.requests:
                 if request_.method == 'POST' and 'i/v1/contents/reviews/query-pages' in request_.url:
+                # if request_.method == 'POST' and 'n/v1/contents/reviews/query-pages' in request_.url:
+
                     if request_.response:
                         try:
                             compressed_data = request_.response.body
