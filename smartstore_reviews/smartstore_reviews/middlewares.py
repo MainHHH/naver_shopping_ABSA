@@ -242,6 +242,7 @@ class SeleniumMiddleware:
         return cls()
 
     def process_request(self, request, spider):
+        # smartstore crawling part
         if 'use_selenium_smartstore' in request.meta:
             self.driver.get(request.url)
 
@@ -253,7 +254,6 @@ class SeleniumMiddleware:
             # Extract and navigate through paginated content
             page_number = 1  # Starting page number
             all_reviews = []  # To store all extracted reviews
-            unique_reviews = set()  # To track unique reviews based on content and date
 
             while True:
                 try:
@@ -306,6 +306,7 @@ class SeleniumMiddleware:
                 request=request
             )
 
+        # brand crawling part
         if 'use_selenium_brand' in request.meta:
             self.driver.get(request.url)
 
@@ -317,7 +318,6 @@ class SeleniumMiddleware:
             # Extract and navigate through paginated content
             page_number = 1  # Starting page number
             all_reviews = []  # To store all extracted reviews
-            unique_reviews = set()  # To track unique reviews based on content and date
 
             while True:
                 try:
