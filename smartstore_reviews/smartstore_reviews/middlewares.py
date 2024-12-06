@@ -255,19 +255,18 @@ class SeleniumMiddleware:
             page_number = 1  # Starting page number
             all_reviews = []  # To store all extracted reviews
 
+            # Scroll to load dynamic content
+            last_height = self.driver.execute_script("return document.body.scrollHeight")
+            self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
+            time.sleep(2)
+
+            # Wait for a specific section to ensure content is loaded
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, 'REVIEW'))
+            )
+
             while True:
                 try:
-                    # Scroll to load dynamic content
-                    last_height = self.driver.execute_script("return document.body.scrollHeight")
-                    self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
-                    time.sleep(2)
-
-                    # Wait for a specific section to ensure content is loaded
-                    WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.ID, 'REVIEW'))
-                    )
-
-
                     # Click the next page button if available
                     next_button = WebDriverWait(self.driver, 5).until(
                         EC.element_to_be_clickable(
@@ -319,19 +318,18 @@ class SeleniumMiddleware:
             page_number = 1  # Starting page number
             all_reviews = []  # To store all extracted reviews
 
+            # Scroll to load dynamic content
+            last_height = self.driver.execute_script("return document.body.scrollHeight")
+            self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
+            time.sleep(2)
+
+            # Wait for a specific section to ensure content is loaded
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.ID, 'REVIEW'))
+            )
+
             while True:
                 try:
-                    # Scroll to load dynamic content
-                    last_height = self.driver.execute_script("return document.body.scrollHeight")
-                    self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
-                    time.sleep(2)
-
-                    # Wait for a specific section to ensure content is loaded
-                    WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.ID, 'REVIEW'))
-                    )
-
-
                     # Click the next page button if available
                     next_button = WebDriverWait(self.driver, 5).until(
                         EC.element_to_be_clickable(
