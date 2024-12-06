@@ -103,8 +103,6 @@ class navershoppingDownloaderMiddleware:
 
 
 # SeleniumWireMiddleware
-
-
 import gzip
 import json
 from scrapy.http import HtmlResponse
@@ -114,8 +112,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import time
-
-
 class SeleniumMiddleware:
     def __init__(self, *args, **kwargs):
         chrome_options = Options()
@@ -131,55 +127,83 @@ class SeleniumMiddleware:
 
     @classmethod
     def from_crawler(cls, crawler):
-        # Instantiate the middleware
         return cls()
 
     def process_request(self, request, spider):
         if 'use_selenium' in request.meta:
             self.driver.get(request.url)
 
-            # Wait for the body tag to be present (adjust as per your needs)
+            # Wait for the main body or a specific element to load
             WebDriverWait(self.driver, 10).until(
                 EC.presence_of_element_located((By.TAG_NAME, 'body'))
             )
 
-            # Scroll down by a fraction to trigger additional content loading
-            last_height = self.driver.execute_script("return document.body.scrollHeight")
-            self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
-            time.sleep(2)  # Allow time for dynamic content to load
+            # Extract and navigate through paginated content
+            page_number = 1  # Starting page number
+            all_reviews = []  # To store all extracted reviews
+            unique_reviews = set()  # To track unique reviews based on content and date
 
-            # Wait for the 'REVIEW' section or other relevant elements
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.ID, 'REVIEW'))
-            )
+            while True:
+                try:
+                    # Scroll to load dynamic content
+                    last_height = self.driver.execute_script("return document.body.scrollHeight")
+                    self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
+                    time.sleep(2)
 
-            # Capture POST requests with specific conditions
-            for request_ in self.driver.requests:
-                if request_.method == 'POST' and 'i/v1/contents/reviews/query-pages' in request_.url:
-                    if request_.response:
-                        try:
-                            compressed_data = request_.response.body
-                            decompressed_data = gzip.decompress(compressed_data)
-                            json_data = json.loads(decompressed_data.decode('utf-8'))
-                            print(json.dumps(json_data, ensure_ascii=False, indent=4))
+                    # Wait for a specific section to ensure content is loaded
+                    WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.ID, 'REVIEW'))
+                    )
 
-                            # Return HtmlResponse to the spider
-                            return HtmlResponse(
-                                url=self.driver.current_url,
-                                body=decompressed_data.decode('utf-8'),
-                                encoding='utf-8',
-                                request=request
-                            )
-                        except Exception as e:
-                            spider.logger.error(f"Failed to process response data: {e}")
-            # Return original HTML content if no specific data is captured
+                    # Capture POST requests and process responses
+                    for request_ in self.driver.requests:
+                        if request_.method == 'POST' and 'i/v1/contents/reviews/query-pages' in request_.url:
+                            if request_.response:
+                                try:
+                                    compressed_data = request_.response.body
+                                    decompressed_data = gzip.decompress(compressed_data)
+                                    json_data = json.loads(decompressed_data.decode('utf-8'))
+
+                                    # Filter out duplicate reviews based on reviewContent and createDate
+                                    for review in json_data['contents']:
+                                        review_content = review.get('reviewContent', '').strip()
+                                        create_date = review.get('createDate', '').strip()
+
+                                        # Combine content and date to form a unique identifier
+                                        review_identifier = f"{review_content}::{create_date}"
+
+                                        if review_identifier and review_identifier not in unique_reviews:
+                                            unique_reviews.add(review_identifier)
+                                            all_reviews.append(review)
+
+                                except Exception as e:
+                                    spider.logger.error(f"Failed to process response data: {e}")
+
+                    # Click the next page button if available
+                    next_button = WebDriverWait(self.driver, 5).until(
+                        EC.element_to_be_clickable(
+                            (By.XPATH, f"//a[@class='UWN4IvaQza _nlog_click' and text()='{page_number + 1}']")
+                        )
+                    )
+                    next_button.click()
+                    spider.logger.info(f"Moved to page {page_number + 1}")
+                    page_number += 1
+                    time.sleep(2)
+
+                except Exception as e:
+                    spider.logger.info(f"No more pages or an error occurred: {e}")
+                    break
+
+            # Combine all reviews into a single HTML response for the spider
             return HtmlResponse(
                 url=self.driver.current_url,
-                body=self.driver.page_source,
+                body=json.dumps({'contents': all_reviews}, ensure_ascii=False).encode('utf-8'),
                 encoding='utf-8',
                 request=request
             )
+
         return None
 
     def spider_closed(self, spider):
         self.driver.quit()
+
