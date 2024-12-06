@@ -40,7 +40,7 @@ class navershopping(scrapy.Spider):
                 item['apply_data'] = content['createDate']
                 item['review'] = content['reviewContent']
                 item['stars_score'] = content['reviewScore']
-                item['thumb_count'] = content['helpCount']
+                item['thumb_count'] = content.get('helpCount', 0)
                 yield item
         except json.JSONDecodeError:
             self.logger.error("Failed to decode JSON from response.")
