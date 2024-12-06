@@ -242,7 +242,7 @@ class SeleniumMiddleware:
         return cls()
 
     def process_request(self, request, spider):
-        if 'use_selenium' in request.meta:
+        if 'use_selenium_smartstore' in request.meta:
             self.driver.get(request.url)
 
             # Wait for the main body or a specific element to load
@@ -286,6 +286,70 @@ class SeleniumMiddleware:
             # Capture POST requests and process responses
             for request_ in self.driver.requests:
                 if request_.method == 'POST' and 'i/v1/contents/reviews/query-pages' in request_.url:
+                    if request_.response:
+                        try:
+                            compressed_data = request_.response.body
+                            decompressed_data = gzip.decompress(compressed_data)
+                            json_data = json.loads(decompressed_data.decode('utf-8'))
+
+                            for review in json_data['contents']:
+                                all_reviews.append(review)
+
+                        except Exception as e:
+                            spider.logger.error(f"Failed to process response data: {e}")
+
+            # Combine all reviews into a single HTML response for the spider
+            return HtmlResponse(
+                url=self.driver.current_url,
+                body=json.dumps({'contents': all_reviews}, ensure_ascii=False).encode('utf-8'),
+                encoding='utf-8',
+                request=request
+            )
+
+        if 'use_selenium_brand' in request.meta:
+            self.driver.get(request.url)
+
+            # Wait for the main body or a specific element to load
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'body'))
+            )
+
+            # Extract and navigate through paginated content
+            page_number = 1  # Starting page number
+            all_reviews = []  # To store all extracted reviews
+            unique_reviews = set()  # To track unique reviews based on content and date
+
+            while True:
+                try:
+                    # Scroll to load dynamic content
+                    last_height = self.driver.execute_script("return document.body.scrollHeight")
+                    self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
+                    time.sleep(2)
+
+                    # Wait for a specific section to ensure content is loaded
+                    WebDriverWait(self.driver, 10).until(
+                        EC.presence_of_element_located((By.ID, 'REVIEW'))
+                    )
+
+
+                    # Click the next page button if available
+                    next_button = WebDriverWait(self.driver, 5).until(
+                        EC.element_to_be_clickable(
+                            (By.XPATH, f"//a[@class='UWN4IvaQza _nlog_click' and text()='{page_number + 1}']")
+                        )
+                    )
+                    next_button.click()
+                    spider.logger.info(f"Moved to page {page_number + 1}")
+                    page_number += 1
+                    time.sleep(2)
+
+                except Exception as e:
+                    spider.logger.info(f"No more pages or an error occurred: {e}")
+                    break
+
+            # Capture POST requests and process responses
+            for request_ in self.driver.requests:
+                if request_.method == 'POST' and 'n/v1/contents/reviews/query-pages' in request_.url:
                     if request_.response:
                         try:
                             compressed_data = request_.response.body
