@@ -35,7 +35,7 @@ class navershopping(scrapy.Spider):
                 item['smartstore'] = self.brand
                 item['product_name'] = content['productName']
                 item['product_id'] = content['productNo']
-                item['product_option'] = content['productOptionContent']
+                item['product_option'] = content.get('productOptionContent', None)
                 item['user_id'] = content['writerId']
                 item['apply_data'] = content['createDate']
                 item['review'] = content['reviewContent']
