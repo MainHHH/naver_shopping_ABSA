@@ -15,9 +15,11 @@ class navershopping(scrapy.Spider):
         self.where = where
 
     def start_requests(self):
+        # smartstore crawling part
         if self.where == "smartstore" and self.brand and self.product_no:
             url = f'https://smartstore.naver.com/{self.brand}/products/{self.product_no}'
             yield scrapy.Request(url=url, meta={'use_selenium_smartstore': True})
+        # brand crawling part
         elif self.where == "brand" and self.brand and self.product_no:
             url = f'https://brand.naver.com/{self.brand}/products/{self.product_no}'
             yield scrapy.Request(url=url, meta={'use_selenium_brand': True})
