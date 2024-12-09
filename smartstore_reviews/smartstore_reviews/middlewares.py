@@ -297,6 +297,8 @@ class SeleniumMiddleware:
                         except Exception as e:
                             spider.logger.error(f"Failed to process response data: {e}")
 
+            # self.driver.quit()
+
             # Combine all reviews into a single HTML response for the spider
             return HtmlResponse(
                 url=self.driver.current_url,
@@ -331,19 +333,28 @@ class SeleniumMiddleware:
             while True:
                 try:
                     # Click the next page button if available
-                    next_button = WebDriverWait(self.driver, 5).until(
+                    next_page_button = WebDriverWait(self.driver, 1).until(
                         EC.element_to_be_clickable(
                             (By.XPATH, f"//a[@class='UWN4IvaQza _nlog_click' and text()='{page_number + 1}']")
                         )
                     )
-                    next_button.click()
+                    next_page_button.click()
                     spider.logger.info(f"Moved to page {page_number + 1}")
                     page_number += 1
-                    time.sleep(2)
+                    time.sleep(1)
 
-                except Exception as e:
-                    spider.logger.info(f"No more pages or an error occurred: {e}")
-                    break
+                except:
+                    try:
+                        next_button = WebDriverWait(self.driver, 1).until(
+                            EC.element_to_be_clickable(
+                                (By.XPATH, '//*[@class="fAUKm1ewwo _2Ar8-aEUTq _nlog_click"]')
+                            )
+                        )
+                        next_button.click()
+                        time.sleep(1)
+                    except Exception as e:
+                        spider.logger.info(f"No more pages or an error occurred: {e}")
+                        break
 
             # Capture POST requests and process responses
             for request_ in self.driver.requests:
@@ -359,6 +370,8 @@ class SeleniumMiddleware:
 
                         except Exception as e:
                             spider.logger.error(f"Failed to process response data: {e}")
+
+            # self.driver.quit()
 
             # Combine all reviews into a single HTML response for the spider
             return HtmlResponse(
