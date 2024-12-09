@@ -18,7 +18,7 @@ class SmartstoreReviewsItem(scrapy.Item):
     # 고객 id
     user_id = scrapy.Field()
     # 등록 일자
-    apply_data = scrapy.Field()
+    apply_date = scrapy.Field()
     # 내용
     review =scrapy.Field()
     # 별점

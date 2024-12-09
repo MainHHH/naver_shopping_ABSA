@@ -37,7 +37,7 @@ class navershopping(scrapy.Spider):
                 item['product_id'] = content['productNo']
                 item['product_option'] = content.get('productOptionContent', None)
                 item['user_id'] = content['writerId']
-                item['apply_data'] = content['createDate']
+                item['apply_date'] = content['createDate']
                 item['review'] = content['reviewContent']
                 item['stars_score'] = content['reviewScore']
                 item['thumb_count'] = content.get('helpCount', 0)
