@@ -33,30 +33,36 @@ class SmartstoreReviewsPipeline:
     def process_item(self, item, spider):
         """데이터를 DB에 삽입"""
         # 리뷰 전처리
-        item['review'] = self.clean_review(item.get('review'))
+        item['review'] = self.clean_emoji(item.get('review'))
+        # 옵션 전처리
+        item['product_option'] = self.clean_emoji(item.get('product_option'))
+        # 상품 이름 전처리
+        item['product_name'] = self.clean_emoji(item.get('product_name'))
+        # 날짜 전처리
+        item['apply_date'] = self.format_datetime(item.get('apply_date'))
 
         try:
-            self.cursor.execute("""
-                INSERT INTO reviews (smartstore, product_name, product_id, product_option, user_id, apply_date, review, stars_score, thumb_count)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                item.get('smartstore'),
-                item.get('product_name'),
-                item.get('product_id'),
-                item.get('product_option'),
-                item.get('user_id'),
-                item.get('apply_date'),
-                item.get('review'),
-                item.get('stars_score'),
-                item.get('thumb_count'),
-            ))
-            # self.conn.commit()
+            query = f"""
+                    INSERT INTO reviews (smartstore, product_name, product_id, product_option, user_id, apply_date, review, stars_score, thumb_count)
+                    SELECT '{item.get('smartstore')}', '{item.get('product_name')}', '{item.get('product_id')}', '{item.get('product_option')}', '{item.get('user_id')}', '{item.get('apply_date')}', '{item.get('review')}', '{item.get('stars_score')}', '{item.get('thumb_count')}'
+                    WHERE NOT EXISTS (
+                        SELECT 1
+                        FROM reviews
+                        WHERE product_id = '{item.get('product_id')}'
+                          AND product_option = '{item.get('product_option')}'
+                          AND user_id = '{item.get('user_id')}'
+                          AND apply_date = '{item.get('apply_date')}'
+                    );
+                    """
+
+            self.cursor.execute(query)
+
             return item
         except Exception as e:
             spider.logger.error(f"Error inserting item: {e}")
             raise DropItem(f"Failed to insert item: {item}")
 
-    def clean_review(self, review):
+    def clean_emoji(self, review):
         emoji_pattern = re.compile(
             "["
             "\U0001F600-\U0001F64F"  # 감정 표현 이모티콘
@@ -82,3 +88,15 @@ class SmartstoreReviewsPipeline:
             review = re.sub(r'\s+', ' ', review).strip()
 
             return review
+
+    def format_datetime(self, apply_date):
+        """날짜를 MySQL DATETIME 형식으로 변환"""
+        if apply_date:
+            try:
+                # 문자열을 파싱하여 datetime 객체로 변환
+                dt = datetime.strptime(apply_date, "%Y-%m-%dT%H:%M:%S.%f%z")
+                # MySQL DATETIME 형식으로 변환
+                return dt.strftime("%Y-%m-%d %H:%M:%S")
+            except ValueError as e:
+                print(e)
+        return None
