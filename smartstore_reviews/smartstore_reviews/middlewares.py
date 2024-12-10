@@ -222,6 +222,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import time
+from scrapy.signalmanager import dispatcher
 
 
 class SeleniumMiddleware:
@@ -236,6 +237,8 @@ class SeleniumMiddleware:
         self.driver.header_overrides = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0'
         }
+
+        dispatcher.connect(self.spider_closed, signals.spider_closed)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -268,7 +271,7 @@ class SeleniumMiddleware:
             while True:
                 try:
                     # Click the next page button if available
-                    next_button = WebDriverWait(self.driver, 5).until(
+                    next_button = WebDriverWait(self.driver, 10).until(
                         EC.element_to_be_clickable(
                             (By.XPATH, f"//a[@class='UWN4IvaQza _nlog_click' and text()='{page_number + 1}']")
                         )
@@ -276,7 +279,7 @@ class SeleniumMiddleware:
                     next_button.click()
                     spider.logger.info(f"Moved to page {page_number + 1}")
                     page_number += 1
-                    time.sleep(2)
+                    time.sleep(5)
 
                 except Exception as e:
                     spider.logger.info(f"No more pages or an error occurred: {e}")
@@ -333,7 +336,7 @@ class SeleniumMiddleware:
             while True:
                 try:
                     # Click the next page button if available
-                    next_page_button = WebDriverWait(self.driver, 1).until(
+                    next_page_button = WebDriverWait(self.driver, 10).until(
                         EC.element_to_be_clickable(
                             (By.XPATH, f"//a[@class='UWN4IvaQza _nlog_click' and text()='{page_number + 1}']")
                         )
@@ -341,17 +344,17 @@ class SeleniumMiddleware:
                     next_page_button.click()
                     spider.logger.info(f"Moved to page {page_number + 1}")
                     page_number += 1
-                    time.sleep(1)
+                    time.sleep(5)
 
                 except:
                     try:
-                        next_button = WebDriverWait(self.driver, 1).until(
+                        next_button = WebDriverWait(self.driver, 10).until(
                             EC.element_to_be_clickable(
                                 (By.XPATH, '//*[@class="fAUKm1ewwo _2Ar8-aEUTq _nlog_click"]')
                             )
                         )
                         next_button.click()
-                        time.sleep(1)
+                        time.sleep(5)
                     except Exception as e:
                         spider.logger.info(f"No more pages or an error occurred: {e}")
                         break
@@ -384,4 +387,6 @@ class SeleniumMiddleware:
         return None
 
     def spider_closed(self, spider):
-        self.driver.quit()
+        print("="*100)
+        if self.driver:
+            self.driver.quit()
