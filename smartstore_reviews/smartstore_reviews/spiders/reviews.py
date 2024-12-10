@@ -44,20 +44,3 @@ class navershopping(scrapy.Spider):
                 yield item
         except json.JSONDecodeError:
             self.logger.error("Failed to decode JSON from response.")
-
-#  debug setting
-if __name__ == "__main__":
-    # Command line argument parsing
-    parser = argparse.ArgumentParser(description="Run Naver Shopping Scraper")
-    parser.add_argument("--where", required=True, help="smartstore or brand")
-    parser.add_argument("--brand", required=True, help="Brand name for the Naver shopping URL")
-    parser.add_argument("--product_no", required=True, help="Product number for the Naver shopping URL")
-    args = parser.parse_args()
-
-    settings = get_project_settings()
-    settings["LOG_LEVEL"] = "DEBUG"
-    process = CrawlerProcess(settings=settings)
-
-    # Pass arguments to the spider
-    process.crawl(navershopping, brand=args.brand, product_no=args.product_no)
-    process.start()
