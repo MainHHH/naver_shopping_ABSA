@@ -279,7 +279,7 @@ class SeleniumMiddleware:
                     next_button.click()
                     spider.logger.info(f"Moved to page {page_number + 1}")
                     page_number += 1
-                    time.sleep(5)
+                    time.sleep(1)
 
                 except Exception as e:
                     spider.logger.info(f"No more pages or an error occurred: {e}")
@@ -299,8 +299,6 @@ class SeleniumMiddleware:
 
                         except Exception as e:
                             spider.logger.error(f"Failed to process response data: {e}")
-
-            # self.driver.quit()
 
             # Combine all reviews into a single HTML response for the spider
             return HtmlResponse(
@@ -326,7 +324,7 @@ class SeleniumMiddleware:
             # Scroll to load dynamic content
             last_height = self.driver.execute_script("return document.body.scrollHeight")
             self.driver.execute_script(f"window.scrollTo(0, {last_height * 2 / 3});")
-            time.sleep(2)
+            time.sleep(1)
 
             # Wait for a specific section to ensure content is loaded
             WebDriverWait(self.driver, 10).until(
@@ -344,7 +342,7 @@ class SeleniumMiddleware:
                     next_page_button.click()
                     spider.logger.info(f"Moved to page {page_number + 1}")
                     page_number += 1
-                    time.sleep(5)
+                    time.sleep(1)
 
                 except:
                     try:
@@ -354,7 +352,7 @@ class SeleniumMiddleware:
                             )
                         )
                         next_button.click()
-                        time.sleep(5)
+                        time.sleep(1)
                     except Exception as e:
                         spider.logger.info(f"No more pages or an error occurred: {e}")
                         break
@@ -374,8 +372,6 @@ class SeleniumMiddleware:
                         except Exception as e:
                             spider.logger.error(f"Failed to process response data: {e}")
 
-            # self.driver.quit()
-
             # Combine all reviews into a single HTML response for the spider
             return HtmlResponse(
                 url=self.driver.current_url,
@@ -387,6 +383,5 @@ class SeleniumMiddleware:
         return None
 
     def spider_closed(self, spider):
-        print("="*100)
         if self.driver:
             self.driver.quit()
