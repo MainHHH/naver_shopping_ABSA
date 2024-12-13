@@ -6,32 +6,18 @@
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
-import pymysql
-import re
-from scrapy.exceptions import DropItem
 from datetime import datetime
+import re
+import csv
 
 class SmartstoreReviewsPipeline:
     def open_spider(self, spider):
-        """스파이더가 열릴 때 DB 연결"""
-        self.conn = pymysql.connect(
-            host=spider.settings.get('MYSQL_HOST'),
-            user=spider.settings.get('MYSQL_USER'),
-            password=spider.settings.get('MYSQL_PASSWORD'),
-            database=spider.settings.get('MYSQL_DATABASE'),
-            port=spider.settings.get('MYSQL_PORT'),
-            charset='utf8mb4'
-        )
-        self.cursor = self.conn.cursor()
-
-    def close_spider(self, spider):
-        """스파이더가 닫힐 때 DB 연결 종료"""
-        self.conn.commit()
-        self.cursor.close()
-        self.conn.close()
+        # 스파이더가 시작될 때 CSV 파일 열기
+        self.file = open('crawling_data.csv', 'w', newline='', encoding='utf-8')
+        self.writer = csv.DictWriter(self.file, fieldnames=['smartstore', 'product_name', 'product_id', 'product_option', 'user_id', 'apply_date', 'review', 'stars_score', 'thumb_count'])
+        self.writer.writeheader()
 
     def process_item(self, item, spider):
-        """데이터를 DB에 삽입"""
         # 리뷰 전처리
         item['review'] = self.clean_emoji(item.get('review'))
         # 옵션 전처리
@@ -41,26 +27,13 @@ class SmartstoreReviewsPipeline:
         # 날짜 전처리
         item['apply_date'] = self.format_datetime(item.get('apply_date'))
 
-        try:
-            query = f"""
-                    INSERT INTO reviews (smartstore, product_name, product_id, product_option, user_id, apply_date, review, stars_score, thumb_count)
-                    SELECT '{item.get('smartstore')}', '{item.get('product_name')}', '{item.get('product_id')}', '{item.get('product_option')}', '{item.get('user_id')}', '{item.get('apply_date')}', '{item.get('review')}', '{item.get('stars_score')}', '{item.get('thumb_count')}'
-                    WHERE NOT EXISTS (
-                        SELECT 1
-                        FROM reviews
-                        WHERE product_id = '{item.get('product_id')}'
-                          AND product_option = '{item.get('product_option')}'
-                          AND user_id = '{item.get('user_id')}'
-                          AND apply_date = '{item.get('apply_date')}'
-                    );
-                    """
+        # CSV 파일에 저장
+        self.writer.writerow(item)
+        return item
 
-            self.cursor.execute(query)
-
-            return item
-        except Exception as e:
-            spider.logger.error(f"Error inserting item: {e}")
-            raise DropItem(f"Failed to insert item: {item}")
+    def close_spider(self, spider):
+        # 스파이더가 종료될 때 파일 닫기
+        self.file.close()
 
     def clean_emoji(self, review):
         emoji_pattern = re.compile(
