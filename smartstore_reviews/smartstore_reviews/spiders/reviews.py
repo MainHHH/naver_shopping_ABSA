@@ -1,9 +1,7 @@
 import scrapy
-from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
-from smartstore_reviews.items import SmartstoreReviewsItem
+from ..items import SmartstoreReviewsItem
 import json
-import argparse
+
 
 class navershopping(scrapy.Spider):
     name = "navershopping"
