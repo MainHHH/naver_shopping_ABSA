@@ -1,8 +1,3 @@
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
 # Scrapy settings for smartstore_reviews project
 #
 # For simplicity, this file contains only settings considered important or
@@ -71,12 +66,6 @@ ITEM_PIPELINES = {
    "smartstore_reviews.pipelines.SmartstoreReviewsPipeline": 300,
 }
 
-# MySQL settings
-MYSQL_HOST = os.getenv("DB_HOST")
-MYSQL_PORT = int(os.getenv("DB_PORT"))
-MYSQL_USER = os.getenv("DB_USER")
-MYSQL_PASSWORD = os.getenv("DB_PASSWORD")
-MYSQL_DATABASE = os.getenv("DB_NAME")
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
