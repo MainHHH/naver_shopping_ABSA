@@ -223,7 +223,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from scrapy.signalmanager import dispatcher
-
+import random
 
 class SeleniumMiddleware:
     def __init__(self, *args, **kwargs):
@@ -268,6 +268,14 @@ class SeleniumMiddleware:
                 EC.presence_of_element_located((By.ID, 'REVIEW'))
             )
 
+            # Click the latest sort button
+            latest_sort_button = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//*[@id="REVIEW"]/div/div[3]/div[1]/div[1]/ul/li[2]/a')
+                )
+            )
+            latest_sort_button.click()
+
             while True:
                 try:
                     # Click the next page button if available
@@ -277,9 +285,9 @@ class SeleniumMiddleware:
                         )
                     )
                     next_button.click()
-                    spider.logger.info(f"Moved to page {page_number + 1}")
+                    spider.logger.info(f"Moved to page {page_number + 1}\nLast Page: {page_number}")
                     page_number += 1
-                    time.sleep(1)
+                    time.sleep(random.uniform(1, 3))
 
                 except Exception as e:
                     spider.logger.info(f"No more pages or an error occurred: {e}")
@@ -298,7 +306,7 @@ class SeleniumMiddleware:
                                 all_reviews.append(review)
 
                         except Exception as e:
-                            spider.logger.error(f"Failed to process response data: {e}")
+                            spider.logger.error(f"Failed to process response data: {e}\nLast Page: {page_number}")
 
             # Combine all reviews into a single HTML response for the spider
             return HtmlResponse(
@@ -331,6 +339,14 @@ class SeleniumMiddleware:
                 EC.presence_of_element_located((By.ID, 'REVIEW'))
             )
 
+            # Click the latest sort button
+            latest_sort_button = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable(
+                    (By.XPATH, '//*[@id="REVIEW"]/div/div[3]/div[1]/div[1]/ul/li[2]/a')
+                )
+            )
+            latest_sort_button.click()
+
             while True:
                 try:
                     # Click the next page button if available
@@ -342,7 +358,7 @@ class SeleniumMiddleware:
                     next_page_button.click()
                     spider.logger.info(f"Moved to page {page_number + 1}")
                     page_number += 1
-                    time.sleep(1)
+                    time.sleep(random.uniform(1, 3))
 
                 except:
                     try:
