@@ -13,7 +13,7 @@ import csv
 class SmartstoreReviewsPipeline:
     def open_spider(self, spider):
         # 스파이더가 시작될 때 CSV 파일 열기
-        self.file = open('crawling_data.csv', 'w', newline='', encoding='utf-8')
+        self.file = open('crawling_data.csv', 'w', newline='', encoding='utf-8-sig')
         self.writer = csv.DictWriter(self.file, fieldnames=['smartstore', 'product_name', 'product_id', 'product_option', 'user_id', 'apply_date', 'review', 'stars_score', 'thumb_count'])
         self.writer.writeheader()
 
@@ -29,7 +29,7 @@ class SmartstoreReviewsPipeline:
 
         # CSV 파일에 저장
         self.writer.writerow(item)
-        return item
+        # return item
 
     def close_spider(self, spider):
         # 스파이더가 종료될 때 파일 닫기
