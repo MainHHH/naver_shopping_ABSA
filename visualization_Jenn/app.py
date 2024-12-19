@@ -7,13 +7,12 @@ st.set_page_config(page_title="네이버 리뷰 ABSA 분석기", layout="centere
 start = st.Page("pages/start.py", title="시작하기", default=True)
 
 # 분석 도구 목록
-status = st.Page("pages/status.py", title='현황 확인')
-analysis = st.Page('pages/analysis.py', title='리뷰 심층 분석')
+dashboard = st.Page("pages/dashboard.py", title='대시보드')
 
 pg = st.navigation(
     {
         "홈": [start],
-        "분석 도구": [status, analysis],
+        "분석 도구": [dashboard],
     }
 )
 pg.run()

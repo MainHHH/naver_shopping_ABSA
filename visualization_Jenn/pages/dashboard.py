@@ -45,7 +45,8 @@ def load_df(user_smartstore, user_product_id):
 
 ###
 
-st.title('분석 결과 요약')
+st.title('대시보드')
+st.write('내 상품에 대한 소비자 감성분석 결과를 확인해보세요!')
 
 # session_state에서 가장 최근 값 읽기
 if 'user_input_ss' in st.session_state and 'user_input_p' in st.session_state:
